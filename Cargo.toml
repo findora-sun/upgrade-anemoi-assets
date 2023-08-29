@@ -1,0 +1,11 @@
+[package]
+name = "demo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+platform-lib-noah = { git = "https://github.com/FindoraNetwork/platform-lib-noah", branch = "develop" }
+ethers = "2.0"
+hex = "0.4"
