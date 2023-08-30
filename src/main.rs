@@ -3,9 +3,14 @@ use ethers::{
     prelude::*,
     utils::keccak256,
 };
-use platform_lib_noah::noah_algebra::{bls12_381::BLSScalar, bn254::BN254Scalar, prelude::Scalar};
-use platform_lib_noah::noah_crypto::anemoi_jive::{
-    bls12_381_deprecated::AnemoiJive381Deprecated, AnemoiJive, AnemoiJive254,
+use platform_lib_noah::{
+    noah_algebra::serialization::NoahFromToBytes,
+    noah_algebra::{bls12_381::BLSScalar, bn254::BN254Scalar, prelude::Scalar},
+    noah_api::keys::PublicKey as NoahXfrPublicKey,
+    noah_crypto::anemoi_jive::{
+        bls12_381_deprecated::AnemoiJive381Deprecated, AnemoiJive, AnemoiJive254,
+    },
+    XfrPublicKey,
 };
 
 fn old_hash(input: &[u8]) -> Vec<u8> {
@@ -55,12 +60,27 @@ const ERC1155_PREFIX: &'static str = "Findora ERC1155 Asset Type";
 const RPC_UTXO_NODE: &'static str = "https://prod-mainnet.prod.findora.org";
 const RPC_EVM_NODE: &'static str = "https://rpc-mainnet.findora.org";
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let erc20_prefix = Token::FixedBytes(keccak256(ERC20_PREFIX).to_vec());
     let erc721_prefix = Token::FixedBytes(keccak256(ERC721_PREFIX).to_vec());
     let erc1155_prefix = Token::FixedBytes(keccak256(ERC1155_PREFIX).to_vec());
 
     // 1. TODO list all assets1
+    let BLACK_HOLE_PUBKEY_STAKING: NoahXfrPublicKey =
+        NoahXfrPublicKey::noah_from_bytes(&[1; 32][..]).unwrap();
+    let key = XfrPublicKey::from_noah(&BLACK_HOLE_PUBKEY_STAKING);
+    let pk = base64::encode_config(NoahFromToBytes::noah_to_bytes(&key), base64::URL_SAFE);
+    let url = format!("{}:8667/get_created_assets/{}", RPC_UTXO_NODE, pk);
+    println!("url: {}", url);
+
+    let resp = reqwest::get(url)
+        .await
+        .unwrap()
+        .json::<serde_json::Value>()
+        .await
+        .unwrap();
+    println!("{}", resp);
 
     // 2. TODO check assets in in prmisxx
 
